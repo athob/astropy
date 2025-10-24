@@ -1,11 +1,14 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+import warnings
 from typing import Literal
 
 import matplotlib.transforms as mtransforms
 import numpy as np
 from matplotlib import _api, rcParams
 from matplotlib.text import Text
+
+from astropy.utils.exceptions import AstropyUserWarning
 
 from .frame import RectangularFrame
 
@@ -37,13 +40,13 @@ class AxisLabels(Text):
 
     def get_minpad(self, axis):
         if isinstance(self._minpad, dict):
-            return self._minpad[axis]
+            return self._minpad.get(axis, 1)
         else:
             return self._minpad
 
     def get_loc(self, axis) -> LocLiteral:
         if isinstance(self._loc, dict):
-            return self._loc[axis]
+            return self._loc.get(axis, None)
         else:
             return self._loc
 
@@ -56,10 +59,31 @@ class AxisLabels(Text):
         else:
             return [x for x in self._visible_axes if x in self._frame or x == "#"]
 
+    def _check_visual_property_dict_keys(self, property_dict: dict, property_name: str):
+        missing = set(self.get_visible_axes()).difference(property_dict.keys())
+        if missing:
+            q = "'"
+            singular = len(missing) == 1
+            warnings.warn(
+                f"The configuration dictionary {property_dict} provided for "
+                f"property {property_name} does not cover "
+                f"{'axis' if singular else 'axes'} {
+                    q + next(iter(missing)) + q if singular else missing
+                } that "
+                f"{'is' if singular else 'are'} currently set to be visible; "
+                "drawing will use the default behavior for this property.",
+                AstropyUserWarning,
+                stacklevel=2,
+            )
+
     def set_minpad(self, minpad):
+        if isinstance(minpad, dict):
+            self._check_visual_property_dict_keys(minpad, "minpad")
         self._minpad = minpad
 
     def set_loc(self, loc: LocLiteral | dict[str, LocLiteral]) -> None:
+        if isinstance(loc, dict):
+            self._check_visual_property_dict_keys(loc, "loc")
         self._loc = loc
 
     def set_visibility_rule(self, value):
