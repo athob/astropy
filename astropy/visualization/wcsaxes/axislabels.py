@@ -1,8 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-import warnings
-from typing import Literal, Callable
 import functools
+import warnings
+from collections.abc import Callable
+from typing import Literal
 
 import matplotlib.transforms as mtransforms
 import numpy as np
@@ -42,12 +43,13 @@ class AxisLabels(Text):
     @staticmethod
     def _decorate_dict_visual_property_getter(method: Callable) -> Callable:
         @functools.wraps(method)
-        def getter(self: 'AxisLabels', axis: str) -> bool|int|float|str:
+        def getter(self: "AxisLabels", axis: str) -> bool | int | float | str:
             property_value = method(self)
             if isinstance(property_value, dict):
                 return property_value[axis]
             else:
                 return property_value
+
         return getter
 
     @_decorate_dict_visual_property_getter
@@ -87,11 +89,15 @@ class AxisLabels(Text):
     @staticmethod
     def _decorate_dict_visual_property_setter(method: Callable) -> Callable:
         property_name = method.__name__.split("set_")[1]
+
         @functools.wraps(method)
-        def setter(self: 'AxisLabels', property_value: bool|int|float|str|dict) -> None:
+        def setter(
+            self: "AxisLabels", property_value: bool | float | str | dict
+        ) -> None:
             if isinstance(property_value, dict):
                 self._check_visual_property_dict_keys(property_value, property_name)
             method(self, property_value)
+
         return setter
 
     @_decorate_dict_visual_property_setter
