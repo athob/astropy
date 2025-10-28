@@ -12,7 +12,7 @@ from matplotlib.text import Text
 
 from astropy.utils.exceptions import AstropyUserWarning
 
-from .frame import RectangularFrame
+from .frame import BaseFrame, RectangularFrame
 
 LocLiteral = Literal["center", "left", "right", "bottom", "top"] | None
 
@@ -29,7 +29,7 @@ class AxisLabels(Text):
         if "verticalalignment" not in kwargs and "va" not in kwargs:
             kwargs["verticalalignment"] = "center"
 
-        self._frame = frame
+        self._frame: BaseFrame = frame
         super().__init__(*args, **kwargs)
         self.set(
             clip_on=True,
