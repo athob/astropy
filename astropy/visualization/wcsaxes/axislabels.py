@@ -1,7 +1,8 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
 import warnings
-from typing import Literal
+from typing import Literal, Callable
+import functools
 
 import matplotlib.transforms as mtransforms
 import numpy as np
@@ -38,17 +39,24 @@ class AxisLabels(Text):
             visibility_rule="labels",
         )
 
-    def get_minpad(self, axis):
-        if isinstance(self._minpad, dict):
-            return self._minpad[axis]
-        else:
-            return self._minpad
+    @staticmethod
+    def _decorate_dict_visual_property_getter(method: Callable) -> Callable:
+        @functools.wraps(method)
+        def getter(self: 'AxisLabels', axis: str) -> bool|int|float|str:
+            property_value = method(self)
+            if isinstance(property_value, dict):
+                return property_value[axis]
+            else:
+                return property_value
+        return getter
 
-    def get_loc(self, axis) -> LocLiteral:
-        if isinstance(self._loc, dict):
-            return self._loc[axis]
-        else:
-            return self._loc
+    @_decorate_dict_visual_property_getter
+    def get_minpad(self):
+        return self._minpad
+
+    @_decorate_dict_visual_property_getter
+    def get_loc(self) -> LocLiteral:
+        return self._loc
 
     def set_visible_axes(self, visible_axes):
         self._visible_axes = self._frame._validate_positions(visible_axes)
@@ -76,14 +84,22 @@ class AxisLabels(Text):
                 stacklevel=2,
             )
 
+    @staticmethod
+    def _decorate_dict_visual_property_setter(method: Callable) -> Callable:
+        property_name = method.__name__.split("set_")[1]
+        @functools.wraps(method)
+        def setter(self: 'AxisLabels', property_value: bool|int|float|str|dict) -> None:
+            if isinstance(property_value, dict):
+                self._check_visual_property_dict_keys(property_value, property_name)
+            method(self, property_value)
+        return setter
+
+    @_decorate_dict_visual_property_setter
     def set_minpad(self, minpad):
-        if isinstance(minpad, dict):
-            self._check_visual_property_dict_keys(minpad, "minpad")
         self._minpad = minpad
 
-    def set_loc(self, loc: LocLiteral | dict[str, LocLiteral]) -> None:
-        if isinstance(loc, dict):
-            self._check_visual_property_dict_keys(loc, "loc")
+    @_decorate_dict_visual_property_setter
+    def set_loc(self, loc: LocLiteral) -> None:
         self._loc = loc
 
     def set_visibility_rule(self, value):
