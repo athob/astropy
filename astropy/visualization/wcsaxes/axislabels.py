@@ -44,11 +44,11 @@ class AxisLabels(Text):
     def _decorate_dict_visual_property_getter(method: Callable) -> Callable:
         @functools.wraps(method)
         def getter(self: "AxisLabels", axis: str) -> bool | int | float | str:
-            property_value = method(self)
-            if isinstance(property_value, dict):
-                return property_value[axis]
+            property_value_or_dict = method(self)
+            if isinstance(property_value_or_dict, dict):
+                return property_value_or_dict[axis]
             else:
-                return property_value
+                return property_value_or_dict
 
         return getter
 
@@ -92,11 +92,13 @@ class AxisLabels(Text):
 
         @functools.wraps(method)
         def setter(
-            self: "AxisLabels", property_value: bool | float | str | dict
+            self: "AxisLabels", property_value_or_dict: bool | float | str | dict
         ) -> None:
-            if isinstance(property_value, dict):
-                self._check_visual_property_dict_keys(property_value, property_name)
-            method(self, property_value)
+            if isinstance(property_value_or_dict, dict):
+                self._check_visual_property_dict_keys(
+                    property_value_or_dict, property_name
+                )
+            method(self, property_value_or_dict)
 
         return setter
 
