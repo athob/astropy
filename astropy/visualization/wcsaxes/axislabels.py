@@ -18,6 +18,8 @@ LocLiteral = Literal["center", "left", "right", "bottom", "top"] | None
 
 
 class AxisLabels(Text):
+    __defaults_of_visual_properties_with_per_axis_dict = {"minpad": 1, "loc": None}
+
     def __init__(self, frame, minpad=1, *args, loc=None, **kwargs):
         # Use rcParams if the following parameters were not specified explicitly
         if "weight" not in kwargs:
@@ -32,10 +34,10 @@ class AxisLabels(Text):
         self._frame: BaseFrame = frame
         super().__init__(*args, **kwargs)
         self.set(
-            clip_on=True,
-            visible_axes="all",
             minpad=minpad,
             loc=loc,
+            clip_on=True,
+            visible_axes="all",
             rotation_mode="anchor",
             visibility_rule="labels",
         )
@@ -62,6 +64,17 @@ class AxisLabels(Text):
 
     def set_visible_axes(self, visible_axes):
         self._visible_axes = self._frame._validate_positions(visible_axes)
+        # re-verify the status of visual properties with dictionaries
+        for (
+            visual_property_name
+        ) in self.__defaults_of_visual_properties_with_per_axis_dict.keys():
+            visual_property_attribute = f"_{visual_property_name}"
+            if hasattr(self, visual_property_attribute):
+                visual_property_value_or_dict = getattr(self, visual_property_attribute)
+                if isinstance(visual_property_value_or_dict, dict):
+                    self._check_visual_property_dict_keys(
+                        visual_property_value_or_dict, visual_property_name
+                    )
 
     def get_visible_axes(self):
         if self._visible_axes == "all":
