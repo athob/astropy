@@ -40,13 +40,13 @@ class AxisLabels(Text):
 
     def get_minpad(self, axis):
         if isinstance(self._minpad, dict):
-            return self._minpad.get(axis, 1)
+            return self._minpad[axis]
         else:
             return self._minpad
 
     def get_loc(self, axis) -> LocLiteral:
         if isinstance(self._loc, dict):
-            return self._loc.get(axis, None)
+            return self._loc[axis]
         else:
             return self._loc
 
@@ -71,7 +71,7 @@ class AxisLabels(Text):
                     q + next(iter(missing)) + q if singular else missing
                 } that "
                 f"{'is' if singular else 'are'} currently set to be visible; "
-                "drawing will use the default behavior for this property.",
+                "drawing may raise a KeyError for this property.",
                 AstropyUserWarning,
                 stacklevel=2,
             )
